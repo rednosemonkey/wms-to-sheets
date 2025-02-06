@@ -33,17 +33,20 @@ credentials = Credentials.from_service_account_info(credentials_info, scopes=SCO
 client = gspread.authorize(credentials)
 
 def setup_driver():
-   chrome_options = Options()
-   prefs = {
-       "download.default_directory": os.path.join(os.getcwd(), "downloads"),
-       "download.prompt_for_download": False,
-       "download.directory_upgrade": True,
-       "safebrowsing.enabled": True,
-       "profile.default_content_settings.popups": 0,
-       "profile.default_content_setting_values.automatic_downloads": 1
-   }
-   chrome_options.add_experimental_option("prefs", prefs)
-   return webdriver.Chrome(options=chrome_options)
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    prefs = {
+        "download.default_directory": os.path.join(os.getcwd(), "downloads"),
+        "download.prompt_for_download": False,
+        "download.directory_upgrade": True,
+        "safebrowsing.enabled": True,
+        "profile.default_content_settings.popups": 0,
+        "profile.default_content_setting_values.automatic_downloads": 1
+    }
+    chrome_options.add_experimental_option("prefs", prefs)
+    return webdriver.Chrome(options=chrome_options)
 
 def wms_download():
    driver = setup_driver()
