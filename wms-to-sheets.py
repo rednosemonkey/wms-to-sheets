@@ -54,7 +54,7 @@ def wms_download():
        # Clean up existing files
        for f in glob.glob(os.path.join("downloads", "zaiko*.csv")):
            os.remove(f)
-           
+
        driver.get("https://www.ec-zaiko.com/login.html")
        username_field = WebDriverWait(driver, 10).until(
            EC.presence_of_element_located((By.NAME, "disp_id"))
@@ -74,7 +74,7 @@ def wms_download():
            EC.element_to_be_clickable((By.CSS_SELECTOR, 'input[type="submit"][value="全項目csv出力"]'))
        )
        csv_button.click()
-       
+
        timeout = 30
        start_time = time.time()
        csv_files = []
@@ -89,7 +89,7 @@ def wms_download():
        process_csv_file(csv_file)
        os.remove(csv_file)
    except Exception as e:
-       pass
+    print(f"Error in wms_download: {e}")
    finally:
        driver.quit()
 
