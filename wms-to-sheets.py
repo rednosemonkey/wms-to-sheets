@@ -94,27 +94,39 @@ def wms_download():
        driver.quit()
 
 def process_csv_file(file_path):
-   try:
-       df = pd.read_csv(file_path, encoding='shift-jis').fillna('')
-       columns_to_remove = ['ID', '商品規格２', 'バーコード']
-       df = df.drop(columns=[col for col in columns_to_remove if col in df.columns], errors='ignore')
-       sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
-       sheet.clear()
-       if '実在庫数' in df.columns and '品番' in df.columns and '商品名' in df.columns:
-           df['実在庫数'] = pd.to_numeric(df['実在庫数'], errors='coerce').fillna(0)
-           df_filtered = df[df['実在庫数'] != 0]
-           df_filtered = df_filtered[~df_filtered['品番'].str.contains('交換用スリーブ|Sticker', na=False)]
-           df_filtered = df_filtered.sort_values(by=['商品名'], ascending=[True])
-           df_filtered = df_filtered.astype(str)
-           total_stock = pd.to_numeric(df_filtered['実在庫数'], errors='coerce').sum()
-           total_row = pd.DataFrame({'品番': ['Total'], '実在庫数': [total_stock]})
-           df_filtered = pd.concat([df_filtered, total_row], ignore_index=True)
-       else:
-           df_filtered = df
-       df_filtered = df_filtered.fillna('')
-       sheet.update([df_filtered.columns.values.tolist()] + df_filtered.values.tolist())
-   except:
-       pass
+    try:
+        # Get current timestamp in Japan timezone
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        timestamp = datetime.now(ZoneInfo("Asia/Tokyo")).strftime("%Y-%m-%d %H:%M:%S")
+        
+        df = pd.read_csv(file_path, encoding='shift-jis').fillna('')
+        columns_to_remove = ['ID', '商品規格２', 'バーコード']
+        df = df.drop(columns=[col for col in columns_to_remove if col in df.columns], errors='ignore')
+        sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
+        sheet.clear()
+        
+        # Add timestamp row first - using named arguments
+        sheet.update(values=[[f'Last Updated: {timestamp}']], range_name='A1')
+        
+        if '実在庫数' in df.columns and '品番' in df.columns and '商品名' in df.columns:
+            df['実在庫数'] = pd.to_numeric(df['実在庫数'], errors='coerce').fillna(0)
+            df_filtered = df[df['実在庫数'] != 0]
+            df_filtered = df_filtered[~df_filtered['品番'].str.contains('交換用スリーブ|Sticker', na=False)]
+            df_filtered = df_filtered.sort_values(by=['商品名'], ascending=[True])
+            df_filtered = df_filtered.astype(str)
+            total_stock = pd.to_numeric(df_filtered['実在庫数'], errors='coerce').sum()
+            total_row = pd.DataFrame({'品番': ['Total'], '実在庫数': [total_stock]})
+            df_filtered = pd.concat([df_filtered, total_row], ignore_index=True)
+        else:
+            df_filtered = df
+            
+        df_filtered = df_filtered.fillna('')
+        # Update data starting from row 2 - using named arguments
+        all_values = [df_filtered.columns.values.tolist()] + df_filtered.values.tolist()
+        sheet.update(values=all_values, range_name='A2')
+    except Exception as e:
+        print(f"Error in process_csv_file: {e}")
 
 if __name__ == "__main__":
    wms_download()
