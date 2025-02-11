@@ -46,7 +46,18 @@ def setup_driver():
         "profile.default_content_setting_values.automatic_downloads": 1
     }
     chrome_options.add_experimental_option("prefs", prefs)
-    return webdriver.Chrome(options=chrome_options)
+    
+    max_attempts = 3
+    retry_delay = 10  # seconds
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return webdriver.Chrome(options=chrome_options)
+        except Exception as e:
+            if attempt == max_attempts:
+                raise e
+            print(f"Setup attempt {attempt} failed: {e}. Retrying in {retry_delay} seconds...")
+            time.sleep(retry_delay)
 
 def wms_download():
    driver = setup_driver()
