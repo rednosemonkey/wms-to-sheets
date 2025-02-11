@@ -128,6 +128,17 @@ def process_csv_file(file_path):
         # Clean up Expiry Date format
         if 'Expiry Date' in df.columns:
             df['Expiry Date'] = df['Expiry Date'].astype(str).apply(lambda x: x.replace('賞味期限', '') if '賞味期限' in x else x)
+            
+        # Extract units number from No. of Units column
+        if 'No. of Units' in df.columns:
+            def extract_units(text):
+                text = str(text)
+                if '入数' in text or '入り数' in text:
+                    import re
+                    numbers = re.findall(r'入[り]?数(\d+)', text)
+                    return numbers[0] if numbers else text
+                return text
+            df['No. of Units'] = df['No. of Units'].apply(extract_units)
         
         columns_to_remove = ['ID', '商品規格２', 'バーコード', 'ロケーション2']
         df = df.drop(columns=[col for col in columns_to_remove if col in df.columns], errors='ignore')
