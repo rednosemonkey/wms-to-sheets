@@ -125,6 +125,10 @@ def process_csv_file(file_path):
         # Rename columns that exist in the DataFrame
         df = df.rename(columns={k: v for k, v in column_mapping.items() if k in df.columns})
         
+        # Clean up Expiry Date format
+        if 'Expiry Date' in df.columns:
+            df['Expiry Date'] = df['Expiry Date'].astype(str).apply(lambda x: x.replace('賞味期限', '') if '賞味期限' in x else x)
+        
         columns_to_remove = ['ID', '商品規格２', 'バーコード', 'ロケーション2']
         df = df.drop(columns=[col for col in columns_to_remove if col in df.columns], errors='ignore')
         sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
