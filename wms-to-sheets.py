@@ -112,28 +112,41 @@ def process_csv_file(file_path):
         timestamp = datetime.now(ZoneInfo("Asia/Tokyo")).strftime("%Y-%m-%d %H:%M:%S")
         
         df = pd.read_csv(file_path, encoding='shift-jis').fillna('')
-        columns_to_remove = ['ID', '商品規格２', 'バーコード']
+        
+        # Column mapping
+        column_mapping = {
+            '品番': 'Product No.',
+            '商品名': 'Product Name',
+            '商品規格1': 'No. of Units',
+            'ロケーション1': 'Expiry Date',
+            '実在庫数': 'Stock'
+        }
+        
+        # Rename columns that exist in the DataFrame
+        df = df.rename(columns={k: v for k, v in column_mapping.items() if k in df.columns})
+        
+        columns_to_remove = ['ID', '商品規格２', 'バーコード', 'ロケーション2']
         df = df.drop(columns=[col for col in columns_to_remove if col in df.columns], errors='ignore')
         sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
         sheet.clear()
         
-        # Add timestamp row first - using named arguments
+        # Add timestamp row first
         sheet.update(values=[[f'Last Updated: {timestamp}']], range_name='A1')
         
-        if '実在庫数' in df.columns and '品番' in df.columns and '商品名' in df.columns:
-            df['実在庫数'] = pd.to_numeric(df['実在庫数'], errors='coerce').fillna(0)
-            df_filtered = df[df['実在庫数'] != 0]
-            df_filtered = df_filtered[~df_filtered['品番'].str.contains('交換用スリーブ|Sticker', na=False)]
-            df_filtered = df_filtered.sort_values(by=['商品名'], ascending=[True])
+        if 'Stock' in df.columns and 'Product No.' in df.columns and 'Product Name' in df.columns:
+            df['Stock'] = pd.to_numeric(df['Stock'], errors='coerce').fillna(0)
+            df_filtered = df[df['Stock'] != 0]
+            df_filtered = df_filtered[~df_filtered['Product No.'].str.contains('交換用スリーブ|Sticker', na=False)]
+            df_filtered = df_filtered.sort_values(by=['Product Name'], ascending=[True])
             df_filtered = df_filtered.astype(str)
-            total_stock = pd.to_numeric(df_filtered['実在庫数'], errors='coerce').sum()
-            total_row = pd.DataFrame({'品番': ['Total'], '実在庫数': [total_stock]})
+            total_stock = pd.to_numeric(df_filtered['Stock'], errors='coerce').sum()
+            total_row = pd.DataFrame({'Product No.': ['Total'], 'Stock': [total_stock]})
             df_filtered = pd.concat([df_filtered, total_row], ignore_index=True)
         else:
             df_filtered = df
             
         df_filtered = df_filtered.fillna('')
-        # Update data starting from row 2 - using named arguments
+        # Update data starting from row 2
         all_values = [df_filtered.columns.values.tolist()] + df_filtered.values.tolist()
         sheet.update(values=all_values, range_name='A2')
     except Exception as e:
