@@ -117,7 +117,7 @@ def process_csv_file(file_path):
         column_mapping = {
             '品番': 'Product No.',
             '商品名': 'Product Name',
-            '商品規格1': 'No. of Units',
+            '商品規格１': 'No. of Units',
             'ロケーション1': 'Expiry Date',
             '実在庫数': 'Stock'
         }
