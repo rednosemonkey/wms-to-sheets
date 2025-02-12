@@ -117,7 +117,7 @@ def process_csv_file(file_path):
         column_mapping = {
             '品番': 'Product No.',
             '商品名': 'Product Name',
-            '商品規格１': 'No. of Units',
+            '商品規格1': 'Units per Carton',
             'ロケーション1': 'Expiry Date',
             '実在庫数': 'Stock'
         }
@@ -129,8 +129,8 @@ def process_csv_file(file_path):
         if 'Expiry Date' in df.columns:
             df['Expiry Date'] = df['Expiry Date'].astype(str).apply(lambda x: x.replace('賞味期限', '') if '賞味期限' in x else x)
             
-        # Extract units number from No. of Units column
-        if 'No. of Units' in df.columns:
+        # Extract units number from Units per Carton column
+        if 'Units per Carton' in df.columns:
             def extract_units(text):
                 text = str(text)
                 if '入数' in text or '入り数' in text:
@@ -138,7 +138,7 @@ def process_csv_file(file_path):
                     numbers = re.findall(r'入[り]?数(\d+)', text)
                     return numbers[0] if numbers else text
                 return text
-            df['No. of Units'] = df['No. of Units'].apply(extract_units)
+            df['Units per Carton'] = df['Units per Carton'].apply(extract_units)
         
         columns_to_remove = ['ID', '商品規格２', 'バーコード', 'ロケーション2']
         df = df.drop(columns=[col for col in columns_to_remove if col in df.columns], errors='ignore')
