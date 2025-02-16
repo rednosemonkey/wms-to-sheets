@@ -145,9 +145,6 @@ def process_csv_file(file_path):
         sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
         sheet.clear()
         
-        # Add timestamp row first
-        sheet.update(values=[[f'Last Updated: {timestamp}']], range_name='A1')
-        
         if 'Stock' in df.columns and 'Product No.' in df.columns and 'Product Name' in df.columns:
             df['Stock'] = pd.to_numeric(df['Stock'], errors='coerce').fillna(0)
             df_filtered = df[df['Stock'] != 0]
@@ -160,10 +157,13 @@ def process_csv_file(file_path):
         else:
             df_filtered = df
             
+        # Add timestamp column
+        df_filtered['Last Updated'] = timestamp
+            
         df_filtered = df_filtered.fillna('')
-        # Update data starting from row 2
+        # Update data
         all_values = [df_filtered.columns.values.tolist()] + df_filtered.values.tolist()
-        sheet.update(values=all_values, range_name='A2')
+        sheet.update(values=all_values)
     except Exception as e:
         print(f"Error in process_csv_file: {e}")
 
