@@ -157,8 +157,10 @@ def process_csv_file(file_path):
         else:
             df_filtered = df
             
-        # Add timestamp column
-        df_filtered['Last Updated'] = timestamp
+        # Add timestamp only to first row
+        df_filtered['Last Updated'] = ''
+        if len(df_filtered) > 0:
+            df_filtered.iloc[0, df_filtered.columns.get_loc('Last Updated')] = timestamp
             
         df_filtered = df_filtered.fillna('')
         # Update data
