@@ -115,22 +115,22 @@ def process_csv_file(file_path):
         
         # Column mapping
         column_mapping = {
-            '品番': 'Product No',
-            '商品名': 'Product Name',
-            '商品規格１': 'Units per Carton',
-            'ロケーション1': 'Expiry Date',
-            '実在庫数': 'Stock'
+            '品番': 'product',
+            '商品名': 'product-name',
+            '商品規格１': 'carton-units',
+            'ロケーション1': 'expiry',
+            '実在庫数': 'stock'
         }
         
         # Rename columns that exist in the DataFrame
         df = df.rename(columns={k: v for k, v in column_mapping.items() if k in df.columns})
         
         # Clean up Expiry Date format
-        if 'Expiry Date' in df.columns:
-            df['Expiry Date'] = df['Expiry Date'].astype(str).apply(lambda x: x.replace('賞味期限', '') if '賞味期限' in x else x)
+        if 'expiry' in df.columns:
+            df['expiry'] = df['expiry'].astype(str).apply(lambda x: x.replace('賞味期限', '') if '賞味期限' in x else x)
             
         # Extract units number from Units per Carton column
-        if 'Units per Carton' in df.columns:
+        if 'carton-units' in df.columns:
             def extract_units(text):
                 text = str(text)
                 if '入数' in text or '入り数' in text:
@@ -138,21 +138,21 @@ def process_csv_file(file_path):
                     numbers = re.findall(r'入[り]?数(\d+)', text)
                     return numbers[0] if numbers else text
                 return text
-            df['Units per Carton'] = df['Units per Carton'].apply(extract_units)
+            df['carton-units'] = df['carton-units'].apply(extract_units)
         
         columns_to_remove = ['ID', '商品規格２', 'バーコード', 'ロケーション2']
         df = df.drop(columns=[col for col in columns_to_remove if col in df.columns], errors='ignore')
         sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
         sheet.clear()
         
-        if 'Stock' in df.columns and 'Product No' in df.columns and 'Product Name' in df.columns:
-            df['Stock'] = pd.to_numeric(df['Stock'], errors='coerce').fillna(0)
-            df_filtered = df[df['Stock'] != 0]
-            df_filtered = df_filtered[~df_filtered['Product No'].str.contains('交換用スリーブ|Sticker', na=False)]
-            df_filtered = df_filtered.sort_values(by=['Product Name'], ascending=[True])
+        if 'stock' in df.columns and 'product' in df.columns and 'product-name' in df.columns:
+            df['stock'] = pd.to_numeric(df['stock'], errors='coerce').fillna(0)
+            df_filtered = df[df['stock'] != 0]
+            df_filtered = df_filtered[~df_filtered['product'].str.contains('交換用スリーブ|Sticker', na=False)]
+            df_filtered = df_filtered.sort_values(by=['product-name'], ascending=[True])
             df_filtered = df_filtered.astype(str)
-            total_stock = pd.to_numeric(df_filtered['Stock'], errors='coerce').sum()
-            total_row = pd.DataFrame({'Product No': ['Total'], 'Stock': [total_stock]})
+            total_stock = pd.to_numeric(df_filtered['stock'], errors='coerce').sum()
+            total_row = pd.DataFrame({'product': ['Total'], 'stock': [total_stock]})
             df_filtered = pd.concat([df_filtered, total_row], ignore_index=True)
         else:
             df_filtered = df
