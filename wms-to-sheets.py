@@ -115,7 +115,7 @@ def process_csv_file(file_path):
         
         # Column mapping
         column_mapping = {
-            '品番': 'Product No.',
+            '品番': 'Product No',
             '商品名': 'Product Name',
             '商品規格１': 'Units per Carton',
             'ロケーション1': 'Expiry Date',
@@ -145,14 +145,14 @@ def process_csv_file(file_path):
         sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
         sheet.clear()
         
-        if 'Stock' in df.columns and 'Product No.' in df.columns and 'Product Name' in df.columns:
+        if 'Stock' in df.columns and 'Product No' in df.columns and 'Product Name' in df.columns:
             df['Stock'] = pd.to_numeric(df['Stock'], errors='coerce').fillna(0)
             df_filtered = df[df['Stock'] != 0]
-            df_filtered = df_filtered[~df_filtered['Product No.'].str.contains('交換用スリーブ|Sticker', na=False)]
+            df_filtered = df_filtered[~df_filtered['Product No'].str.contains('交換用スリーブ|Sticker', na=False)]
             df_filtered = df_filtered.sort_values(by=['Product Name'], ascending=[True])
             df_filtered = df_filtered.astype(str)
             total_stock = pd.to_numeric(df_filtered['Stock'], errors='coerce').sum()
-            total_row = pd.DataFrame({'Product No.': ['Total'], 'Stock': [total_stock]})
+            total_row = pd.DataFrame({'Product No': ['Total'], 'Stock': [total_stock]})
             df_filtered = pd.concat([df_filtered, total_row], ignore_index=True)
         else:
             df_filtered = df
