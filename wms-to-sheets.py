@@ -158,9 +158,9 @@ def process_csv_file(file_path):
             df_filtered = df
             
         # Add timestamp only to first row
-        df_filtered['Last Updated'] = ''
+        df_filtered['last-updated'] = ''
         if len(df_filtered) > 0:
-            df_filtered.iloc[0, df_filtered.columns.get_loc('Last Updated')] = timestamp
+            df_filtered.iloc[0, df_filtered.columns.get_loc('last-updated')] = timestamp
             
         df_filtered = df_filtered.fillna('')
         # Update data
