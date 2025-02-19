@@ -109,7 +109,7 @@ def process_csv_file(file_path):
         # Get current timestamp in Japan timezone
         from datetime import datetime
         from zoneinfo import ZoneInfo
-        timestamp = datetime.now(ZoneInfo("Asia/Tokyo")).strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now(ZoneInfo("Asia/Tokyo")).strftime("%Y-%m-%d %H:%M")
         
         df = pd.read_csv(file_path, encoding='shift-jis').fillna('')
         
